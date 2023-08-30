@@ -12,13 +12,13 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
-        "dnadesign/silverstripe-elemental": "^3 || ^4 || ^5",
-        "silverstripe/tagfield": "^2.0 || ^3",
+        "dnadesign/silverstripe-elemental": "^5",
+        "silverstripe/tagfield": "^3",
         "silverstripe/vendor-plugin": "^2.0",
-        "silverstripe/admin": "^1.5 || ^2"
+        "silverstripe/admin": "^2"
     },
     "require-dev": {
-        "silverstripe/recipe-testing": "^2"
+        "silverstripe/recipe-testing": "^3"
     },
     "extra": {
         "branch-alias": {
