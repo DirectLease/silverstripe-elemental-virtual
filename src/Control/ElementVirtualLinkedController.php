@@ -4,7 +4,6 @@ namespace DNADesign\ElementalVirtual\Control;
 
 use DNADesign\Elemental\Controllers\ElementController;
 use Exception;
-use SilverStripe\Control\HTTPResponse;
 
 class ElementVirtualLinkedController extends ElementController
 {
@@ -32,7 +31,7 @@ class ElementVirtualLinkedController extends ElementController
      *
      * @return HTTPResponse
      */
-    public function redirect(string $url, int $code = 302): HTTPResponse
+    public function redirect($url, $code = 302)
     {
         if ($this->data()->virtualOwner) {
             $parts = explode('#', $url);

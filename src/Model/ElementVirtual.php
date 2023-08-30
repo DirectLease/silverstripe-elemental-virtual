@@ -12,8 +12,6 @@ use SilverStripe\TagField\TagField;
  *
  * As elemental is based on a natural has_one relation to an object,
  * this allows the same element to be linked to multiple pages.
- *
- * @method LinkedElement() BaseElement
  */
 class ElementVirtual extends BaseElement
 {
@@ -33,15 +31,8 @@ class ElementVirtual extends BaseElement
     private static $singular_name = 'Virtual block';
 
     private static $inline_editable = true;
-
+    
     private static $controller_template = 'ElementHolder_VirtualLinked';
-
-    /**
-     * @config
-     *
-     * @var string A field to use as the title in the linkable dropdown. Must be a DatabaseField on BaseElement
-     */
-    private static $linkable_title_field = 'VirtualLookupTitle';
 
     /**
      * @param BaseElement
@@ -79,7 +70,6 @@ class ElementVirtual extends BaseElement
                     ->setIsMultiple(false)
                     ->setCanCreate(false)
                     ->setShouldLazyLoad(true)
-                    ->setTitleField($this->config()->get('linkable_title_field'))
             );
 
             if ($this->LinkedElementID) {

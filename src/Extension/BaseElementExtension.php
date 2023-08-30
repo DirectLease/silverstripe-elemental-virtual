@@ -2,11 +2,9 @@
 
 namespace DNADesign\ElementalVirtual\Extensions;
 
-use DNADesign\Elemental\Models\BaseElement;
 use DNADesign\Elemental\Models\ElementalArea;
 use DNADesign\ElementalVirtual\Forms\ElementalGridFieldDeleteAction;
 use DNADesign\ElementalVirtual\Model\ElementVirtual;
-use SilverStripe\Core\Convert;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\GridField\GridFieldAddExistingAutocompleter;
 use SilverStripe\Forms\GridField\GridFieldAddNewButton;
@@ -15,10 +13,8 @@ use SilverStripe\Forms\GridField\GridFieldConfig_Base;
 use SilverStripe\Forms\GridField\GridFieldDataColumns;
 use SilverStripe\Forms\GridField\GridFieldDetailForm;
 use SilverStripe\Forms\LiteralField;
-use SilverStripe\Forms\ReadonlyField;
 use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\DataExtension;
-use SilverStripe\ORM\DB;
 use SilverStripe\ORM\FieldType\DBHTMLText;
 use SilverStripe\Versioned\Versioned;
 
@@ -35,8 +31,7 @@ class BaseElementExtension extends DataExtension
      * @var array
      */
     private static $db = [
-        'AvailableGlobally' => 'Boolean(1)',
-        'VirtualLookupTitle' => 'Varchar(200)'
+        'AvailableGlobally' => 'Boolean(1)'
     ];
 
     /**
@@ -51,32 +46,6 @@ class BaseElementExtension extends DataExtension
         $default = $this->owner->config()->get('default_global_elements');
 
         $this->owner->AvailableGlobally = $default;
-    }
-
-
-    public function requireDefaultRecords()
-    {
-        $update = BaseElement::get()->where('VirtualLookupTitle IS NULL AND AvailableGlobally = 1');
-        $table = BaseElement::singleton()->baseTable();
-
-        foreach ($update as $element) {
-            $title = $element->getVirtualLinkedSummary();
-
-            // populate the new VirtualLookupTitle
-            DB::query(sprintf(
-                "UPDATE %s SET VirtualLookupTitle = '%s' WHERE ID = %d",
-                $table,
-                $title,
-                $element->ID
-            ));
-
-            DB::query(sprintf(
-                "UPDATE %s_Live SET VirtualLookupTitle = '%s' WHERE ID = %d",
-                $table,
-                $title,
-                $element->ID
-            ));
-        }
     }
 
     /**
@@ -116,16 +85,7 @@ class BaseElementExtension extends DataExtension
      */
     public function getVirtualLinkedSummary()
     {
-        $summary = sprintf(
-            '%s (%s #%s)',
-            Convert::raw2sql($this->owner->Title),
-            $this->owner->getType(),
-            $this->owner->ID
-        );
-
-        $this->owner->invokeWithExtensions('updateVirtualLinkedSummary', $summary);
-
-        return $summary;
+        return sprintf('%s (%s #%s)', $this->owner->Title, $this->owner->getType(), $this->owner->ID);
     }
 
     /**
@@ -149,17 +109,8 @@ class BaseElementExtension extends DataExtension
         $global = $fields->dataFieldByName('AvailableGlobally');
 
         if ($global) {
-            $desc = _t(__CLASS__ . '.LookupDescription', 'Search for the above title when linking to this element');
-            $fields->removeByName([
-                'VirtualLookupTitle',
-                'AvailableGlobally'
-            ]);
-
-            $fields->addFieldsToTab('Root.Settings', [
-                $global,
-                ReadonlyField::create('VirtualLookupTitle', _t(__CLASS__ . '.LookupTitle', 'Virtual Lookup Title'))
-                    ->setDescription($desc)
-            ]);
+            $fields->removeByName('AvailableGlobally');
+            $fields->addFieldToTab('Root.Settings', $global);
         }
 
         if ($virtual = $fields->dataFieldByName('VirtualClones')) {
@@ -174,8 +125,8 @@ class BaseElementExtension extends DataExtension
                             'DisplaysOnPage',
                             sprintf(
                                 "<p>"
-                                    . _t(__CLASS__ . '.OriginalContentFrom', 'The original content element appears on')
-                                    . " <a href='%s'>%s</a></p>",
+                                . _t(__CLASS__ . '.OriginalContentFrom', 'The original content element appears on')
+                                . " <a href='%s'>%s</a></p>",
                                 ($ownerPage->hasMethod('CMSEditLink') && $ownerPage->canEdit()) ? $ownerPage->CMSEditLink() : $ownerPage->Link(),
                                 $ownerPage->MenuTitle
                             )
@@ -188,11 +139,11 @@ class BaseElementExtension extends DataExtension
                 $virtual
                     ->setTitle(_t(__CLASS__ . '.OtherPages', 'Other pages'))
                     ->getConfig()
-                    ->removeComponentsByType(GridFieldAddExistingAutocompleter::class)
-                    ->removeComponentsByType(GridFieldAddNewButton::class)
-                    ->removeComponentsByType(GridFieldDeleteAction::class)
-                    ->removeComponentsByType(GridFieldDetailForm::class)
-                    ->addComponent(new ElementalGridFieldDeleteAction());
+                        ->removeComponentsByType(GridFieldAddExistingAutocompleter::class)
+                        ->removeComponentsByType(GridFieldAddNewButton::class)
+                        ->removeComponentsByType(GridFieldDeleteAction::class)
+                        ->removeComponentsByType(GridFieldDetailForm::class)
+                        ->addComponent(new ElementalGridFieldDeleteAction());
 
                 $virtual->getConfig()
                     ->getComponentByType(GridFieldDataColumns::class)
@@ -204,12 +155,6 @@ class BaseElementExtension extends DataExtension
                 $fields->removeByName('VirtualClones');
             }
         }
-    }
-
-
-    public function onBeforeWrite()
-    {
-        $this->owner->setField('VirtualLookupTitle', $this->owner->getVirtualLinkedSummary());
     }
 
     /**
